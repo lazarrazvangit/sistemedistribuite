@@ -1,15 +1,18 @@
 package org.example;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.net.InetAddress;
+import java.lang.reflect.Type;
 import java.net.Socket;
 import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 
 public class Main {
     public static void main(String[] args) {
@@ -28,9 +31,7 @@ public class Main {
         System.out.println("Portul local pe care ruleaza serverul: " + VariabileGlobale.portServerLocal);
         System.out.println("Ip-ul serverului remote la care ne conectam: " + VariabileGlobale.ipServerRemote);
         System.out.println("Portul serverului remote la care ne conectam: " + VariabileGlobale.portServerRemote);
-
-        // date pentru testare
-        VariabileGlobale.perechiIdIp.put(9, "192.168..");
+        System.out.println("-----------------------------------------------");
 
         // pornire server pe alt fir de executie
         ThreadServer threadServer = new ThreadServer();
@@ -38,7 +39,7 @@ public class Main {
 
         // exista cazul in care un peer este primul intrat in retea
         if (VariabileGlobale.ipServerRemote.equals("0")){
-
+            // nimic
         }else {
             try {
                 // deschide socket pentru comunicarea cu serverul
@@ -52,18 +53,22 @@ public class Main {
                 out.println("Hello " + VariabileGlobale.id + " " + VariabileGlobale.portServerLocal);
 
                 // primire raspunsuri
-                String raspunsIdServerRemote = in.readLine();
+                String raspunsIdServerBootstrap = in.readLine();
                 String raspunsJsonPerechiIdIp = in.readLine();
                 String raspunsJsonPerechiIdPort = in.readLine();
 
-                System.out.println(raspunsIdServerRemote);
+                System.out.println("Raspuns pentru mesajul Hello catre serverul de legatura:");
+                System.out.println(raspunsIdServerBootstrap);
                 System.out.println(raspunsJsonPerechiIdIp);
                 System.out.println(raspunsJsonPerechiIdPort);
+                System.out.println("-----------------------------------------------");
 
                 // convertire dictionare convertite in sir de caractere in dictionare
                 Gson gson = new Gson();
-                HashMap<Integer, String> raspunsPerechiIdIp = gson.fromJson(raspunsJsonPerechiIdIp, HashMap.class);
-                HashMap<Integer, Integer> raspunsPerechiIdPort = gson.fromJson(raspunsJsonPerechiIdPort, HashMap.class);
+                Type typeOfIpMap = new TypeToken<HashMap<Integer, String>>(){}.getType();
+                Type typeOfPortMap = new TypeToken<HashMap<Integer, Integer>>(){}.getType();
+                HashMap<Integer, String> raspunsPerechiIdIp = gson.fromJson(raspunsJsonPerechiIdIp, typeOfIpMap);
+                HashMap<Integer, Integer> raspunsPerechiIdPort = gson.fromJson(raspunsJsonPerechiIdPort,typeOfPortMap);
 
                 // actualizare dictionare locale
                 VariabileGlobale.perechiIdIp.putAll(raspunsPerechiIdIp);
@@ -71,16 +76,37 @@ public class Main {
 
                 // trimite mesaj Hello catre ceilalti peers
                 // pentru ca peer nou sa fie inregistrat in dictionarele locale ale fiecaruia
-                //...
+                // iteram fiecare intrare din colectia care contine id-urile si ip-urile
+                Set<Map.Entry<Integer, String>> entrySet = VariabileGlobale.perechiIdIp.entrySet();
+                for (Map.Entry<Integer, String> entry : entrySet) {
+                    int id = entry.getKey();
+                    String ip = entry.getValue();
+                    // luam din cealalta colectie portul pe care asculta procesul
+                    int port = VariabileGlobale.perechiIdPort.get(id);
+
+                    // trimitem mesaj Hello catre peer
+                    socketClient = new Socket(ip, port);
+
+                    in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
+                    out = new PrintWriter(socketClient.getOutputStream(), true);
+
+                    out.println("Hello " + VariabileGlobale.id + " " + VariabileGlobale.portServerLocal);
+                    String raspunsIdServerRemote = in.readLine();
+
+                    System.out.println("Raspuns pentru mesajul Hello catre ceilalti peers:");
+                    System.out.println(raspunsIdServerRemote);
+                    System.out.println("-----------------------------------------------");
+                }
 
                 // punem in dictionarele locale id-ul, ip-ul si portul serverlui de legatura
-                int idServerRemote = Integer.parseInt(raspunsIdServerRemote);
+                int idServerRemote = Integer.parseInt(raspunsIdServerBootstrap);
                 VariabileGlobale.perechiIdIp.put(idServerRemote, VariabileGlobale.ipServerRemote);
                 VariabileGlobale.perechiIdPort.put(idServerRemote, VariabileGlobale.portServerRemote);
 
                 System.out.println("Dictionare actualizate:");
                 System.out.println(VariabileGlobale.perechiIdIp.toString());
                 System.out.println(VariabileGlobale.perechiIdPort.toString());
+                System.out.println("-----------------------------------------------");
 
                 //eliberare resurse
                 in.close();
