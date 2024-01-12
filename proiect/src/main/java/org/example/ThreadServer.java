@@ -66,6 +66,7 @@ public class ThreadServer extends Thread {
                             + "id=" + idClient
                             + " ip=" + ipClient
                             + " port=" + portClient);
+                    System.out.println("-----------------------------------------------");
 
                     // salvam datele despre peer nou conectat in retea in dictionare
                     VariabileGlobale.perechiIdIp.put(idClient, ipClient);
@@ -74,6 +75,15 @@ public class ThreadServer extends Thread {
                     System.out.println("Dictionare actualizate:");
                     System.out.println(VariabileGlobale.perechiIdIp.toString());
                     System.out.println(VariabileGlobale.perechiIdPort.toString());
+                    System.out.println("-----------------------------------------------");
+                } else if (mesaj.equals("Lider?")){
+                    out.println(VariabileGlobale.idLider);
+
+                    System.out.println("Am trimis id-ul liderului catre peer nou");
+                    System.out.println("-----------------------------------------------");
+                }
+                else if(mesaj.equals("Heartbeat")){
+                    out.println("Ok");
                 }
 
                 //eliberare resurse

@@ -24,13 +24,13 @@ public class Main {
         // citire argumente
         VariabileGlobale.id = Integer.parseInt(args[0]);
         VariabileGlobale.portServerLocal = Integer.parseInt(args[1]);
-        VariabileGlobale.ipServerRemote = args[2];
-        VariabileGlobale.portServerRemote = Integer.parseInt(args[3]);
+        VariabileGlobale.ipServerBootstrap = args[2];
+        VariabileGlobale.portServerBootstrap = Integer.parseInt(args[3]);
 
         System.out.println("Id here: " + VariabileGlobale.id);
         System.out.println("Portul local pe care ruleaza serverul: " + VariabileGlobale.portServerLocal);
-        System.out.println("Ip-ul serverului remote la care ne conectam: " + VariabileGlobale.ipServerRemote);
-        System.out.println("Portul serverului remote la care ne conectam: " + VariabileGlobale.portServerRemote);
+        System.out.println("Ip-ul serverului remote la care ne conectam: " + VariabileGlobale.ipServerBootstrap);
+        System.out.println("Portul serverului remote la care ne conectam: " + VariabileGlobale.portServerBootstrap);
         System.out.println("-----------------------------------------------");
 
         // pornire server pe alt fir de executie
@@ -38,12 +38,16 @@ public class Main {
         threadServer.start();
 
         // exista cazul in care un peer este primul intrat in retea
-        if (VariabileGlobale.ipServerRemote.equals("0")){
-            // nimic
+        if (VariabileGlobale.ipServerBootstrap.equals("0")){
+            // primul peer care intra in retea se autoproclama lider
+            VariabileGlobale.idLider = VariabileGlobale.id;
+
+            System.out.println("Eu sunt lider");
+            System.out.println("-----------------------------------------------");
         }else {
             try {
                 // deschide socket pentru comunicarea cu serverul
-                Socket socketClient = new Socket(VariabileGlobale.ipServerRemote, VariabileGlobale.portServerRemote);
+                Socket socketClient = new Socket(VariabileGlobale.ipServerBootstrap, VariabileGlobale.portServerBootstrap);
 
                 // fluxuri pentru citire si scriere
                 BufferedReader in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
@@ -100,12 +104,32 @@ public class Main {
 
                 // punem in dictionarele locale id-ul, ip-ul si portul serverlui de legatura
                 int idServerRemote = Integer.parseInt(raspunsIdServerBootstrap);
-                VariabileGlobale.perechiIdIp.put(idServerRemote, VariabileGlobale.ipServerRemote);
-                VariabileGlobale.perechiIdPort.put(idServerRemote, VariabileGlobale.portServerRemote);
+                VariabileGlobale.perechiIdIp.put(idServerRemote, VariabileGlobale.ipServerBootstrap);
+                VariabileGlobale.perechiIdPort.put(idServerRemote, VariabileGlobale.portServerBootstrap);
 
                 System.out.println("Dictionare actualizate:");
                 System.out.println(VariabileGlobale.perechiIdIp.toString());
                 System.out.println(VariabileGlobale.perechiIdPort.toString());
+                System.out.println("-----------------------------------------------");
+
+                // dupa ce i-am cunoscut pe ceilalti din retea aflam cine e liderul
+                socketClient = new Socket(VariabileGlobale.ipServerBootstrap, VariabileGlobale.portServerBootstrap);
+
+                in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
+                out = new PrintWriter(socketClient.getOutputStream(), true);
+
+                out.println("Lider?");
+                String raspunsIdLider = in.readLine();
+                VariabileGlobale.idLider = Integer.parseInt(raspunsIdLider);
+
+                System.out.println("Raspuns pentru mesajul Lider? catre serverul de legatura:");
+                System.out.println(raspunsIdLider);
+                System.out.println("-----------------------------------------------");
+
+                // dupa ce am aflat cine e liderul monitorizam starea acestuia
+                VariabileGlobale.threadHeartbeat = new ThreadHeartbeat();
+                VariabileGlobale.threadHeartbeat.start();
+                System.out.println("Se trimite Hearbeat catre lider in background");
                 System.out.println("-----------------------------------------------");
 
                 //eliberare resurse
@@ -114,7 +138,7 @@ public class Main {
                 socketClient.close();
             } catch (IOException e) {
                 e.printStackTrace();
-                System.out.println("eroare hello");
+                System.out.println("eroare la intrare in retea");
             }
         }
 
@@ -130,5 +154,6 @@ public class Main {
 
         // inchide server
         threadServer.running = false;
+        VariabileGlobale.threadHeartbeat.running = false;
     }
 }
