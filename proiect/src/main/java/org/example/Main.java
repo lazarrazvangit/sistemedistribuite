@@ -16,21 +16,27 @@ public class Main {
 
         // citire argumente
         VariabileGlobale.id = Integer.parseInt(args[0]);
-        VariabileGlobale.port = Integer.parseInt(args[1]);
-        VariabileGlobale.serverIp = args[2];
-        VariabileGlobale.serverPort = Integer.parseInt(args[3]);
+        VariabileGlobale.portServerLocal = Integer.parseInt(args[1]);
+        VariabileGlobale.ipServerRemote = args[2];
+        VariabileGlobale.portServerRemote = Integer.parseInt(args[3]);
+
+        System.out.println("Id here: " + VariabileGlobale.id);
+        System.out.println("Portul local pe care ruleaza serverul: " + VariabileGlobale.portServerLocal);
+        System.out.println("Ip-ul serverului remote la care ne conectam: " + VariabileGlobale.ipServerRemote);
+        System.out.println("Portul serverului remote la care ne conectam: " + VariabileGlobale.portServerRemote);
 
         // pornire server pe alt fir de executie
         ThreadServer threadServer = new ThreadServer();
         threadServer.start();
 
         // exista cazul in care un peer este primul intrat in retea
-        if (VariabileGlobale.serverIp.equals("0")){
+        if (VariabileGlobale.ipServerRemote.equals("0")){
 
         }else {
             try {
                 // deschide socket pentru comunicarea cu serverul
-                Socket socketClient = new Socket(VariabileGlobale.serverIp, VariabileGlobale.serverPort);
+                Socket socketClient = new Socket(VariabileGlobale.ipServerRemote, VariabileGlobale.portServerRemote);
+                
                 // fluxuri pentru citire si scriere
                 BufferedReader in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
                 PrintWriter out = new PrintWriter(socketClient.getOutputStream(), true);
