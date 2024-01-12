@@ -53,7 +53,7 @@ public class ThreadServer extends Thread {
 
                     // trimitem catre peer nou in retea id-urile, ip-urile si porturile altor peer pe care ii cunoaste
                     // acest peer
-                    out.println(VariabileGlobale.id);
+                    out.println("hi from " + VariabileGlobale.id);
                     out.println(dictionarIdIpConvertit);
                     out.println(dictionarIdPortConvertit);
 
@@ -62,18 +62,9 @@ public class ThreadServer extends Thread {
                     String ipClient = socketClient.getInetAddress().getHostAddress();
                     int portClient = Integer.parseInt(subsiruri[2]);
 
-                    System.out.println("Peer nou conectat: "
-                            + "id=" + idClient
-                            + " ip=" + ipClient
-                            + " port=" + portClient);
-
                     // salvam datele despre peer nou conectat in retea in dictionare
                     VariabileGlobale.perechiIdIp.put(idClient, ipClient);
                     VariabileGlobale.perechiIdPort.put(idClient, portClient);
-
-                    System.out.println("Dictionare actualizate:");
-                    System.out.println(VariabileGlobale.perechiIdIp.toString());
-                    System.out.println(VariabileGlobale.perechiIdPort.toString());
                 }
 
                 //eliberare resurse
