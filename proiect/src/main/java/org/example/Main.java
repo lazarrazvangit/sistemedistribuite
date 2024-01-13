@@ -1,6 +1,8 @@
 package org.example;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.BufferedReader;
@@ -154,13 +156,19 @@ public class Main {
                 in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
                 out = new PrintWriter(socketClient.getOutputStream(), true);
 
-                out.println("Lider?");
-                String raspunsIdLider = in.readLine();
-                VariabileGlobale.idLider = Integer.parseInt(raspunsIdLider);
+                //daca un peer nou intra in retea in timpul alegerii unui nou lider atunci va reincerca
+                //dupa un anumit numar de secunde
+                do {
+                    Thread.sleep(3000);
 
-                System.out.println("Raspuns pentru mesajul Lider? catre serverul de legatura:");
-                System.out.println(raspunsIdLider);
-                System.out.println("-----------------------------------------------");
+                    out.println("Lider?");
+                    String raspunsIdLider = in.readLine();
+                    VariabileGlobale.idLider = Integer.parseInt(raspunsIdLider);
+
+                    System.out.println("Raspuns pentru mesajul Lider? catre serverul de legatura:");
+                    System.out.println(raspunsIdLider);
+                    System.out.println("-----------------------------------------------");
+                }while(VariabileGlobale.idLider == -1);
 
                 // dupa ce am aflat cine e liderul monitorizam starea acestuia
                 // vezi cod bucla while din clasa ThreadHeartbeat
@@ -171,7 +179,7 @@ public class Main {
                 in.close();
                 out.close();
                 socketClient.close();
-            } catch (IOException e) {
+            } catch (IOException | InterruptedException e) {
                 e.printStackTrace();
                 System.out.println("eroare la intrare in retea");
                 System.out.println("***********************************************");
@@ -185,33 +193,67 @@ public class Main {
             String line = scanner.nextLine();
 
             //aici se interpreteaza linia introdusa de la tastatura
-            String[] stringArray = line.split(" ");
+            //" " este separatorul dupa care se face split
+            //3 este numarul maxim de subsiruri rezultate (o comanda, 2 argumente)
+            //al doilea argument poate fi un json
+            String[] stringArray = line.split(" ", 3);
             //comanda este primul cuvant din linie
             String comanda = stringArray[0];
 
             switch (comanda) {
                 case "print":
                     String argument = stringArray[1];
-                    if (argument.equals("all")){
+                    if (argument.equals("all")) {
                         System.out.println("Se afiseaza intreaga colectie de documente");
                         System.out.println(VariabileGlobale.colectieDocumente.toString());
                         System.out.println("###############################################");
-                    }else {
+                    } else {
                         //argument = numele unui document
                         //numele unui document este identificator in colectie
                         //nu pot exista doua documente cu acelasi nume pentru simplificarea demonstratiei
                         HashMap<String, Object> document = VariabileGlobale.colectieDocumente.get(argument);
-                        if (document == null){
+                        if (document == null) {
                             //exista situatia in care se tasteaza numele unui document inexistent
                             System.out.println("Documentul cautat nu exista!");
                             System.out.println("###############################################");
-                        }else {
+                        } else {
                             System.out.println(document.toString());
                             System.out.println("###############################################");
                         }
                     }
                     break;
                 case "save":
+                    String numeDocument = stringArray[1]; //cheie
+                    String continutDocumentJson = stringArray[2];
+
+                    //verifica daca datele sunt in format JSON corect
+                    boolean formatCorect = true;
+                    try {
+                        JsonParser jsonParser = new JsonParser();
+                        jsonParser.parse(continutDocumentJson);
+                        System.out.println("!COR");
+                    } catch (JsonSyntaxException e) {
+                        formatCorect = false;
+                    }
+
+                    //daca formatul e corect se trimite tranzactia catre lider
+                    //sau daca acest peer e lider se va ocupa de tranzactie
+                    if (formatCorect == true) {
+                        if (VariabileGlobale.id == VariabileGlobale.idLider){
+                            MetodeGlobale.twoPhaseCommit(numeDocument, continutDocumentJson);
+                        }else {
+                            //trimite tranzactia catre lider
+                            //format mesaj: "TRANZACTIE numeDocument continutDocumentJSON"
+                            String mesaj = "TRANZACTIE " + numeDocument + " " + continutDocumentJson;
+                            MetodeGlobale.trimiteMesaj(VariabileGlobale.idLider, mesaj);
+
+                            System.out.println("Tranzactia a fost trimisa catre lider: " + VariabileGlobale.idLider);
+                            System.out.println("-----------------------------------------------");
+                        }
+                    } else {
+                        System.out.println("formamtul JSON e incorect");
+                        System.out.println("###############################################");
+                    }
                     break;
                 default:
                     System.out.println("nu am inteles comanda");

@@ -19,7 +19,7 @@ public class ThreadServer extends Thread {
         // initializare
         try {
             socketServer = new ServerSocket(VariabileGlobale.portServerLocal);
-        }catch (Exception e){
+        } catch (Exception e) {
             // portul pe care se porneste serverul local poate fi folosit de alt proces
             e.printStackTrace();
             System.out.println("eroare pornire server");
@@ -43,10 +43,12 @@ public class ThreadServer extends Thread {
                 //se imparte sirul de caractere primit in subsiruri
                 //primul subsir pana la spatiu reprezinta un mesaj
                 //celelalte subsiruri sunt argumente, de exemplu cine a trimis mesajul
-                String[] subsiruri = sirCaractere.split(" ");
+                //limitam numarul de subsiruri la 3 deoarece nu avem comenzi cu mai mult de 2 argumente
+                //iar al doiea argument poate fi un json care contine spatii
+                String[] subsiruri = sirCaractere.split(" ", 3);
                 String mesaj = subsiruri[0];
 
-                if (mesaj.equals("Hello")){
+                if (mesaj.equals("Hello")) {
                     // converteste obiect din program in sir de caractere
                     // pentru a fi trimis prin retea
                     Gson gson = new Gson();
@@ -80,17 +82,15 @@ public class ThreadServer extends Thread {
                     System.out.println(VariabileGlobale.perechiIdIp.toString());
                     System.out.println(VariabileGlobale.perechiIdPort.toString());
                     System.out.println("-----------------------------------------------");
-                } else if (mesaj.equals("Lider?")){
+                } else if (mesaj.equals("Lider?")) {
                     // trimite id lider inapoi catre peer care intreaba cine e liderul
                     out.println(VariabileGlobale.idLider);
 
                     System.out.println("Am trimis id-ul liderului catre peer nou");
                     System.out.println("-----------------------------------------------");
-                }
-                else if(mesaj.equals("Heartbeat")){
+                } else if (mesaj.equals("Heartbeat")) {
                     out.println("Alive");
-                }
-                else if(mesaj.equals("Coordinator")){
+                } else if (mesaj.equals("Coordinator")) {
                     // obtinem id-ul noului lider
                     int idLiderNou = Integer.parseInt(subsiruri[1]);
                     // actualizam variabila locala
@@ -101,13 +101,42 @@ public class ThreadServer extends Thread {
                     System.out.println("Lider nou " + idLiderNou);
                     System.out.println("-----------------------------------------------");
 
-                }else if(mesaj.equals("Election")){
+                } else if (mesaj.equals("Election")) {
                     // opreste heartbeat prin marcare cu -1 a liderului
                     VariabileGlobale.idLider = -1;
                     // trimite ok inapoi la peer cu id mai mic
                     out.println("Ok");
                     // trimite mesaj Election mai departe la urmatorul peer cu id mai mare
                     MetodeGlobale.ringElection();
+                } else if (mesaj.equals("TRANZACTIE")) {
+                    //extrage datele din mesaj
+                    String numeDocument = subsiruri[1];
+                    String continutDocumentJson = subsiruri[2];
+                    //initiaza 2pc
+                    MetodeGlobale.twoPhaseCommit(numeDocument, continutDocumentJson);
+                } else if (mesaj.equals("PREPARE")) {
+                    //extrage datele din mesaj
+                    String numeDocument = subsiruri[1];
+                    String continutDocumentJson = subsiruri[2];
+                    //salveaza documentul in tranzactia locala
+                    Tranzactie.numeDocumentInTranzactie = numeDocument;
+                    Tranzactie.continutDocumentInTranzactie = MetodeGlobale.deserializeazaDocument(continutDocumentJson);
+                    //raspunde la PREPARE CU READY
+                    out.println("READY");
+                } else if (mesaj.equals("COMMIT")) {
+                    //salveaza documentul in colectia locala
+                    VariabileGlobale.colectieDocumente.put(Tranzactie.numeDocumentInTranzactie,
+                            Tranzactie.continutDocumentInTranzactie);
+
+                    //raspunde la COMMIT cu acknoledge
+                    out.println("Ack");
+
+                    System.out.println("Documentul nou a fost salvat");
+                    System.out.println("-----------------------------------------------");
+                } else {
+                    out.println("COMANDA INEXISTENTA IN IF CASE PE SERVER THREAD");
+                    System.out.println("COMANDA INEXISTENTA IN IF CASE PE SERVER THREAD");
+                    System.out.println("************************************************");
                 }
 
                 //eliberare resurse

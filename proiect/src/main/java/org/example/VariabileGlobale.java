@@ -14,7 +14,11 @@ public class VariabileGlobale {
     static int idLider = -1;
 
     //cheia pentru cautarea unui document e de tip String
+    //cheia coincide cu numele documentului
     //valoarea e un dictionar care are chei de tip String
     //iar valorile sunt orice obiecte
     static HashMap<String, HashMap<String, Object>> colectieDocumente = new HashMap<>();
+
+    //obiect unde este stocata temporar o singura tranzactie
+    static HashMap<String, Object> documentInTranzactie = new HashMap<>();
 }
