@@ -7,13 +7,12 @@ import java.io.PrintWriter;
 import java.net.Socket;
 
 public class ThreadHeartbeat extends Thread {
-    public boolean running = true;
 
     @Override
     public void run() {
         int contorEroare = 0;
 
-        while (running) {
+        while (Thread.interrupted() == false) {
             try {
                 // heartbeat se trimi din 3 in 3 secunde
                 Thread.sleep(3000);

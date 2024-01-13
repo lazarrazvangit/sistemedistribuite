@@ -10,7 +10,6 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 public class ThreadServer extends Thread {
-    public boolean running = true;
 
     @Override
     public void run() {
@@ -26,7 +25,7 @@ public class ThreadServer extends Thread {
             System.out.println("eroare pornire server");
         }
 
-        while (running) {
+        while (Thread.interrupted() == false) {
             try {
                 // asteapta conexiune noua initializata de un client
                 Socket socketClient = socketServer.accept();

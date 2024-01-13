@@ -178,18 +178,47 @@ public class Main {
             }
         }
 
+        Scanner scanner = new Scanner(System.in);
+
         boolean running = true;
         while (running) {
-            Scanner scanner = new Scanner(System.in);
-            String mesaj = scanner.nextLine();
-            if (mesaj.equals("x")) {
-                running = false;
-            }
-            scanner.close();
-        }
+            String line = scanner.nextLine();
 
-        // inchide server
-        threadServer.running = false;
-        threadHeartbeat.running = false;
+            //aici se interpreteaza linia introdusa de la tastatura
+            String[] stringArray = line.split(" ");
+            //comanda este primul cuvant din linie
+            String comanda = stringArray[0];
+
+            switch (comanda) {
+                case "print":
+                    String argument = stringArray[1];
+                    if (argument.equals("all")){
+                        System.out.println("Se afiseaza intreaga colectie de documente");
+                        System.out.println(VariabileGlobale.colectieDocumente.toString());
+                        System.out.println("###############################################");
+                    }else {
+                        //argument = numele unui document
+                        //numele unui document este identificator in colectie
+                        //nu pot exista doua documente cu acelasi nume pentru simplificarea demonstratiei
+                        HashMap<String, Object> document = VariabileGlobale.colectieDocumente.get(argument);
+                        if (document == null){
+                            //exista situatia in care se tasteaza numele unui document inexistent
+                            System.out.println("Documentul cautat nu exista!");
+                            System.out.println("###############################################");
+                        }else {
+                            System.out.println(document.toString());
+                            System.out.println("###############################################");
+                        }
+                    }
+                    break;
+                case "save":
+                    break;
+                default:
+                    System.out.println("nu am inteles comanda");
+                    System.out.println("###############################################");
+            }
+        }
+        scanner.close();
+        //TODO: nu am reusit sa inchid corect threadurile
     }
 }
