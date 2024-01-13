@@ -9,10 +9,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.lang.reflect.Type;
 import java.net.Socket;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Scanner;
-import java.util.Set;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
@@ -47,6 +44,23 @@ public class Main {
 
             System.out.println("Eu sunt lider");
             System.out.println("-----------------------------------------------");
+
+            //date pentru test
+            HashMap<String, Object> documentTest = new HashMap<>();
+            documentTest.put("nume", "calculator");
+            documentTest.put("pret", 2000);
+
+            HashMap<String, Object> specificatii = new HashMap<>();
+            specificatii.put("RAM", 6);
+            specificatii.put("HDD", 500);
+
+            documentTest.put("specificatii", specificatii);
+            VariabileGlobale.colectieDocumente.put("produs1", documentTest);
+            //aici se incheie datele pentru test
+
+            System.out.println("Colectia de documente:");
+            System.out.println(VariabileGlobale.colectieDocumente.toString());
+            System.out.println("-----------------------------------------------");
         }else {
             try {
                 // deschide socket pentru comunicarea cu serverul
@@ -57,29 +71,36 @@ public class Main {
                 PrintWriter out = new PrintWriter(socketClient.getOutputStream(), true);
 
                 // trimitere mesaj Hello
+                //se primeste raspuns id server de legatura, dictionare cu ip si porturi ale celorlalti peers din retea
+                //si colectia de documente care trebuie stocata local pe peer nou
                 out.println("Hello " + VariabileGlobale.id + " " + VariabileGlobale.portServerLocal);
 
                 // primire raspunsuri
                 String raspunsIdServerBootstrap = in.readLine();
                 String raspunsJsonPerechiIdIp = in.readLine();
                 String raspunsJsonPerechiIdPort = in.readLine();
+                String raspunsJsonColectieDocumente = in.readLine();
 
                 System.out.println("Raspuns pentru mesajul Hello catre serverul de legatura:");
                 System.out.println(raspunsIdServerBootstrap);
                 System.out.println(raspunsJsonPerechiIdIp);
                 System.out.println(raspunsJsonPerechiIdPort);
+                System.out.println(raspunsJsonColectieDocumente);
                 System.out.println("-----------------------------------------------");
 
                 // convertire dictionare convertite in sir de caractere in dictionare
                 Gson gson = new Gson();
                 Type typeOfIpMap = new TypeToken<HashMap<Integer, String>>(){}.getType();
                 Type typeOfPortMap = new TypeToken<HashMap<Integer, Integer>>(){}.getType();
+                Type mapType = new TypeToken<HashMap<String, HashMap<String, Object>>>() {}.getType();
                 HashMap<Integer, String> raspunsPerechiIdIp = gson.fromJson(raspunsJsonPerechiIdIp, typeOfIpMap);
                 HashMap<Integer, Integer> raspunsPerechiIdPort = gson.fromJson(raspunsJsonPerechiIdPort,typeOfPortMap);
+                HashMap<String, HashMap<String, Object>> raspunsColectieDocumente = gson.fromJson(raspunsJsonColectieDocumente, mapType);
 
                 // actualizare dictionare locale
                 VariabileGlobale.perechiIdIp.putAll(raspunsPerechiIdIp);
                 VariabileGlobale.perechiIdPort.putAll(raspunsPerechiIdPort);
+                VariabileGlobale.colectieDocumente.putAll(raspunsColectieDocumente);
 
                 // trimite mesaj Hello catre ceilalti peers
                 // pentru ca peer nou sa fie inregistrat in dictionarele locale ale fiecaruia
@@ -113,6 +134,7 @@ public class Main {
                 System.out.println("Dictionare actualizate:");
                 System.out.println(VariabileGlobale.perechiIdIp.toString());
                 System.out.println(VariabileGlobale.perechiIdPort.toString());
+                System.out.println(VariabileGlobale.colectieDocumente.toString());
                 System.out.println("-----------------------------------------------");
 
                 // dupa ce i-am cunoscut pe ceilalti din retea aflam cine e liderul

@@ -1,14 +1,6 @@
 package org.example;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
 
 public class VariabileGlobale {
     static int id;
@@ -20,4 +12,9 @@ public class VariabileGlobale {
     static HashMap<Integer, String> perechiIdIp = new HashMap<>();
     static HashMap<Integer, Integer> perechiIdPort = new HashMap<>();
     static int idLider = -1;
+
+    //cheia pentru cautarea unui document e de tip String
+    //valoarea e un dictionar care are chei de tip String
+    //iar valorile sunt orice obiecte
+    static HashMap<String, HashMap<String, Object>> colectieDocumente = new HashMap<>();
 }

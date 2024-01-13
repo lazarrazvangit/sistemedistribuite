@@ -53,12 +53,14 @@ public class ThreadServer extends Thread {
                     Gson gson = new Gson();
                     String dictionarIdIpConvertit = gson.toJson(VariabileGlobale.perechiIdIp);
                     String dictionarIdPortConvertit = gson.toJson(VariabileGlobale.perechiIdPort);
+                    String colectieDocumenteConvertita = gson.toJson(VariabileGlobale.colectieDocumente);
 
                     // trimitem catre peer nou in retea id-urile, ip-urile si porturile altor peer pe care ii cunoaste
-                    // acest peer
+                    // acest peer si documentele stocate local
                     out.println(VariabileGlobale.id);
                     out.println(dictionarIdIpConvertit);
                     out.println(dictionarIdPortConvertit);
+                    out.println(colectieDocumenteConvertita);
 
                     // colectam datele despre clientul nou in retea
                     int idClient = Integer.parseInt(subsiruri[1]);
