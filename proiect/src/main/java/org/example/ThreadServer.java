@@ -34,9 +34,12 @@ public class ThreadServer extends Thread {
                 BufferedReader in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
                 PrintWriter out = new PrintWriter(socketClient.getOutputStream(), true);
 
-                // citire mesaj primit
+                // citire sir de caractere primit
                 String sirCaractere = in.readLine();
+
+                System.out.println("sir de caractere primit:");
                 System.out.println(sirCaractere);
+                System.out.println("-----------------------------------------------");
 
                 //se imparte sirul de caractere primit in subsiruri
                 //primul subsir pana la spatiu reprezinta un mesaj
@@ -77,13 +80,33 @@ public class ThreadServer extends Thread {
                     System.out.println(VariabileGlobale.perechiIdPort.toString());
                     System.out.println("-----------------------------------------------");
                 } else if (mesaj.equals("Lider?")){
+                    // trimite id lider inapoi catre peer care intreaba cine e liderul
                     out.println(VariabileGlobale.idLider);
 
                     System.out.println("Am trimis id-ul liderului catre peer nou");
                     System.out.println("-----------------------------------------------");
                 }
                 else if(mesaj.equals("Heartbeat")){
+                    out.println("Alive");
+                }
+                else if(mesaj.equals("Coordinator")){
+                    // obtinem id-ul noului lider
+                    int idLiderNou = Integer.parseInt(subsiruri[1]);
+                    // actualizam variabila locala
+                    VariabileGlobale.idLider = idLiderNou;
+                    //trimitem acknoledge
+                    out.println("Ack");
+
+                    System.out.println("Lider nou " + idLiderNou);
+                    System.out.println("-----------------------------------------------");
+
+                }else if(mesaj.equals("Election")){
+                    // opreste heartbeat prin marcare cu -1 a liderului
+                    VariabileGlobale.idLider = -1;
+                    // trimite ok inapoi la peer cu id mai mic
                     out.println("Ok");
+                    // trimite mesaj Election mai departe la urmatorul peer cu id mai mare
+                    MetodeGlobale.ringElection();
                 }
 
                 //eliberare resurse

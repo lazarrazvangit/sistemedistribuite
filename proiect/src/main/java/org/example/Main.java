@@ -37,6 +37,9 @@ public class Main {
         ThreadServer threadServer = new ThreadServer();
         threadServer.start();
 
+        ThreadHeartbeat threadHeartbeat = new ThreadHeartbeat();
+        threadHeartbeat.start();
+
         // exista cazul in care un peer este primul intrat in retea
         if (VariabileGlobale.ipServerBootstrap.equals("0")){
             // primul peer care intra in retea se autoproclama lider
@@ -127,8 +130,7 @@ public class Main {
                 System.out.println("-----------------------------------------------");
 
                 // dupa ce am aflat cine e liderul monitorizam starea acestuia
-                VariabileGlobale.threadHeartbeat = new ThreadHeartbeat();
-                VariabileGlobale.threadHeartbeat.start();
+                // vezi cod bucla while din clasa ThreadHeartbeat
                 System.out.println("Se trimite Hearbeat catre lider in background");
                 System.out.println("-----------------------------------------------");
 
@@ -154,6 +156,6 @@ public class Main {
 
         // inchide server
         threadServer.running = false;
-        VariabileGlobale.threadHeartbeat.running = false;
+        threadHeartbeat.running = false;
     }
 }
