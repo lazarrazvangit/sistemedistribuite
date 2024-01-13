@@ -14,7 +14,7 @@ import java.util.*;
 public class Main {
     public static void main(String[] args) {
         // daca nu sunt date argumentele necesare, programul se opreste imediat
-        if (args.length != 4){
+        if (args.length != 4) {
             System.exit(-1);
         }
 
@@ -38,7 +38,7 @@ public class Main {
         threadHeartbeat.start();
 
         // exista cazul in care un peer este primul intrat in retea
-        if (VariabileGlobale.ipServerBootstrap.equals("0")){
+        if (VariabileGlobale.ipServerBootstrap.equals("0")) {
             // primul peer care intra in retea se autoproclama lider
             VariabileGlobale.idLider = VariabileGlobale.id;
 
@@ -61,7 +61,7 @@ public class Main {
             System.out.println("Colectia de documente:");
             System.out.println(VariabileGlobale.colectieDocumente.toString());
             System.out.println("-----------------------------------------------");
-        }else {
+        } else {
             try {
                 // deschide socket pentru comunicarea cu serverul
                 Socket socketClient = new Socket(VariabileGlobale.ipServerBootstrap, VariabileGlobale.portServerBootstrap);
@@ -90,11 +90,14 @@ public class Main {
 
                 // convertire dictionare convertite in sir de caractere in dictionare
                 Gson gson = new Gson();
-                Type typeOfIpMap = new TypeToken<HashMap<Integer, String>>(){}.getType();
-                Type typeOfPortMap = new TypeToken<HashMap<Integer, Integer>>(){}.getType();
-                Type mapType = new TypeToken<HashMap<String, HashMap<String, Object>>>() {}.getType();
+                Type typeOfIpMap = new TypeToken<HashMap<Integer, String>>() {
+                }.getType();
+                Type typeOfPortMap = new TypeToken<HashMap<Integer, Integer>>() {
+                }.getType();
+                Type mapType = new TypeToken<HashMap<String, HashMap<String, Object>>>() {
+                }.getType();
                 HashMap<Integer, String> raspunsPerechiIdIp = gson.fromJson(raspunsJsonPerechiIdIp, typeOfIpMap);
-                HashMap<Integer, Integer> raspunsPerechiIdPort = gson.fromJson(raspunsJsonPerechiIdPort,typeOfPortMap);
+                HashMap<Integer, Integer> raspunsPerechiIdPort = gson.fromJson(raspunsJsonPerechiIdPort, typeOfPortMap);
                 HashMap<String, HashMap<String, Object>> raspunsColectieDocumente = gson.fromJson(raspunsJsonColectieDocumente, mapType);
 
                 // actualizare dictionare locale
@@ -113,17 +116,25 @@ public class Main {
                     int port = VariabileGlobale.perechiIdPort.get(id);
 
                     // trimitem mesaj Hello catre peer
-                    socketClient = new Socket(ip, port);
+                    try {
+                        socketClient = new Socket(ip, port);
 
-                    in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
-                    out = new PrintWriter(socketClient.getOutputStream(), true);
+                        in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
+                        out = new PrintWriter(socketClient.getOutputStream(), true);
 
-                    out.println("Hello " + VariabileGlobale.id + " " + VariabileGlobale.portServerLocal);
-                    String raspunsIdServerRemote = in.readLine();
+                        out.println("Hello " + VariabileGlobale.id + " " + VariabileGlobale.portServerLocal);
+                        String raspunsIdServerRemote = in.readLine();
 
-                    System.out.println("Raspuns pentru mesajul Hello catre ceilalti peers:");
-                    System.out.println(raspunsIdServerRemote);
-                    System.out.println("-----------------------------------------------");
+                        System.out.println("Raspuns pentru mesajul Hello catre un peer necunoscut:");
+                        System.out.println(raspunsIdServerRemote);
+                        System.out.println("-----------------------------------------------");
+                    } catch (IOException e) {
+                        //acest bloc catch trateaza situatia in care se trimite un mesaj catre un peer
+                        //care a ramas in dictionar dar a parasit reteaua anterior intrarii acestui peer nou
+                        System.out.println("eroare trimitere mesaj Hello catre un peer din dictionar (poate a parasit" +
+                                " reteaua anterior)");
+                        System.out.println("***********************************************");
+                    }
                 }
 
                 // punem in dictionarele locale id-ul, ip-ul si portul serverlui de legatura
@@ -163,14 +174,15 @@ public class Main {
             } catch (IOException e) {
                 e.printStackTrace();
                 System.out.println("eroare la intrare in retea");
+                System.out.println("***********************************************");
             }
         }
 
         boolean running = true;
-        while (running){
+        while (running) {
             Scanner scanner = new Scanner(System.in);
             String mesaj = scanner.nextLine();
-            if (mesaj.equals("x")){
+            if (mesaj.equals("x")) {
                 running = false;
             }
             scanner.close();

@@ -105,6 +105,9 @@ public class MetodeGlobale {
             VariabileGlobale.idLider = VariabileGlobale.id;
             // transmite un mesaj Coordinator catre toti ceilalti
             broadcast("Coordinator " + VariabileGlobale.id);
+
+            System.out.println("Am devenit lider!");
+            System.out.println("-----------------------------------------------");
         }
     }
 }
