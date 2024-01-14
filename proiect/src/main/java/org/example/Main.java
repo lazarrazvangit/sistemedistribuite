@@ -13,9 +13,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.Socket;
 import java.util.HashMap;
-import java.util.Map;
 import java.util.Scanner;
-import java.util.Set;
 
 public class Main {
     public static void main(String[] args) {
@@ -109,40 +107,12 @@ public class Main {
 
                 // trimite mesaj Hello catre ceilalti peers
                 // pentru ca peer nou sa fie inregistrat in dictionarele locale ale fiecaruia
-                // iteram fiecare intrare din colectia care contine id-urile si ip-urile
-                Set<Map.Entry<Integer, String>> entrySet = VariabileGlobale.perechiIdIp.entrySet();
-                for (Map.Entry<Integer, String> entry : entrySet) {
-                    int id = entry.getKey();
-                    String ip = entry.getValue();
-                    // luam din cealalta colectie portul pe care asculta procesul
-                    int port = VariabileGlobale.perechiIdPort.get(id);
-
-                    // trimitem mesaj Hello catre peer
-                    try {
-                        socketClient = new Socket(ip, port);
-
-                        in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
-                        out = new PrintWriter(socketClient.getOutputStream(), true);
-
-                        out.println("Hello " + VariabileGlobale.id + " " + VariabileGlobale.portServerLocal);
-                        String raspunsIdServerRemote = in.readLine();
-
-                        System.out.println("Raspuns pentru mesajul Hello catre un peer necunoscut:");
-                        System.out.println(raspunsIdServerRemote);
-                        System.out.println("-----------------------------------------------");
-                    } catch (IOException e) {
-                        //acest bloc catch trateaza situatia in care se trimite un mesaj catre un peer
-                        //care a ramas in dictionar dar a parasit reteaua anterior intrarii acestui peer nou
-                        System.out.println("eroare trimitere mesaj Hello catre un peer din dictionar (poate a parasit" +
-                                " reteaua anterior)");
-                        System.out.println("***********************************************");
-                    }
-                }
+                MetodeGlobale.broadcast("Hello " + VariabileGlobale.id + " " + VariabileGlobale.portServerLocal);
 
                 // punem in dictionarele locale id-ul, ip-ul si portul serverlui de legatura
-                int idServerRemote = Integer.parseInt(raspunsIdServerBootstrap);
-                VariabileGlobale.perechiIdIp.put(idServerRemote, VariabileGlobale.ipServerBootstrap);
-                VariabileGlobale.perechiIdPort.put(idServerRemote, VariabileGlobale.portServerBootstrap);
+                int idServerBootstrap = Integer.parseInt(raspunsIdServerBootstrap);
+                VariabileGlobale.perechiIdIp.put(idServerBootstrap, VariabileGlobale.ipServerBootstrap);
+                VariabileGlobale.perechiIdPort.put(idServerBootstrap, VariabileGlobale.portServerBootstrap);
 
                 System.out.println("Dictionare actualizate:");
                 System.out.println(VariabileGlobale.perechiIdIp.toString());
@@ -151,24 +121,14 @@ public class Main {
                 System.out.println("-----------------------------------------------");
 
                 // dupa ce i-am cunoscut pe ceilalti din retea aflam cine e liderul
-                socketClient = new Socket(VariabileGlobale.ipServerBootstrap, VariabileGlobale.portServerBootstrap);
-
-                in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
-                out = new PrintWriter(socketClient.getOutputStream(), true);
-
-                //daca un peer nou intra in retea in timpul alegerii unui nou lider atunci va reincerca
-                //dupa un anumit numar de secunde
                 do {
+                    //daca un peer nou intra in retea in timpul alegerii unui nou lider atunci va reincerca
+                    //dupa un anumit numar de secunde
                     Thread.sleep(3000);
 
-                    out.println("Lider?");
-                    String raspunsIdLider = in.readLine();
+                    String raspunsIdLider = MetodeGlobale.trimiteMesaj(idServerBootstrap, "Lider?");
                     VariabileGlobale.idLider = Integer.parseInt(raspunsIdLider);
-
-                    System.out.println("Raspuns pentru mesajul Lider? catre serverul de legatura:");
-                    System.out.println(raspunsIdLider);
-                    System.out.println("-----------------------------------------------");
-                }while(VariabileGlobale.idLider == -1);
+                } while (VariabileGlobale.idLider == -1);
 
                 // dupa ce am aflat cine e liderul monitorizam starea acestuia
                 // vezi cod bucla while din clasa ThreadHeartbeat
@@ -231,7 +191,6 @@ public class Main {
                     try {
                         JsonParser jsonParser = new JsonParser();
                         jsonParser.parse(continutDocumentJson);
-                        System.out.println("!COR");
                     } catch (JsonSyntaxException e) {
                         formatCorect = false;
                     }
@@ -239,9 +198,9 @@ public class Main {
                     //daca formatul e corect se trimite tranzactia catre lider
                     //sau daca acest peer e lider se va ocupa de tranzactie
                     if (formatCorect == true) {
-                        if (VariabileGlobale.id == VariabileGlobale.idLider){
+                        if (VariabileGlobale.id == VariabileGlobale.idLider) {
                             MetodeGlobale.twoPhaseCommit(numeDocument, continutDocumentJson);
-                        }else {
+                        } else {
                             //trimite tranzactia catre lider
                             //format mesaj: "TRANZACTIE numeDocument continutDocumentJSON"
                             String mesaj = "TRANZACTIE " + numeDocument + " " + continutDocumentJson;

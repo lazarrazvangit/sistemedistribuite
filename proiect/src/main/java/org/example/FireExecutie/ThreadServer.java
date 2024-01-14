@@ -113,6 +113,7 @@ public class ThreadServer extends Thread {
                     // trimite mesaj Election mai departe la urmatorul peer cu id mai mare
                     MetodeGlobale.ringElection();
                 } else if (mesaj.equals("TRANZACTIE")) {
+                    out.println("controlul tranzactiei a fost preluat");
                     //extrage datele din mesaj
                     String numeDocument = subsiruri[1];
                     String continutDocumentJson = subsiruri[2];
@@ -136,6 +137,14 @@ public class ThreadServer extends Thread {
                     out.println("Ack");
 
                     System.out.println("Documentul nou a fost salvat");
+                    System.out.println("-----------------------------------------------");
+                } else if (mesaj.equals("ROLLBACK")){
+                    Tranzactie.numeDocumentInTranzactie = null;
+                    Tranzactie.continutDocumentInTranzactie = null;
+
+                    out.println("Ack");
+
+                    System.out.println("Tranzactie anulata");
                     System.out.println("-----------------------------------------------");
                 } else {
                     out.println("COMANDA INEXISTENTA IN IF CASE PE SERVER THREAD");

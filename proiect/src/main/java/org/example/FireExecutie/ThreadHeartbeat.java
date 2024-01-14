@@ -3,12 +3,6 @@ package org.example.FireExecutie;
 import org.example.Metode.MetodeGlobale;
 import org.example.VariabileGlobale;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
-
 public class ThreadHeartbeat extends Thread {
 
     @Override
@@ -30,26 +24,14 @@ public class ThreadHeartbeat extends Thread {
                     continue;
                 }
 
-                // gasim ip-ul si portul liderului folosind id-ul
-                String ipLider = VariabileGlobale.perechiIdIp.get(VariabileGlobale.idLider);
-                int portLider = VariabileGlobale.perechiIdPort.get(VariabileGlobale.idLider);
+                // se trimite heartbeat
+                String raspuns = MetodeGlobale.trimiteMesaj(VariabileGlobale.idLider, "Heartbeat");
 
-                try {
-                    Socket socketClient = new Socket(ipLider, portLider);
-
-                    BufferedReader in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
-                    PrintWriter out = new PrintWriter(socketClient.getOutputStream(), true);
-
-                    out.println("Heartbeat");
-                    String raspuns = in.readLine();
-
+                // se verifica raspunsul primit in urma heartbeat-ului
+                if (raspuns.equals("Alive")){
                     // dupa un Heartbeat efectuat cu succes se reseteaza contorul
                     contorEroare = 0;
-
-                    System.out.println("Raspuns pentru mesajul Heartbeat catre lider:");
-                    System.out.println(raspuns);
-                    System.out.println("-----------------------------------------------");
-                } catch (IOException e) {
+                }else {
                     contorEroare++;
                     // dupa 3 erori consecutive se considera ca liderul a iesit din retea
                     if (contorEroare >= 3){
