@@ -7,11 +7,6 @@ import org.example.FireExecutie.ThreadServer;
 import org.example.Metode.MetodeDeserializare;
 import org.example.Metode.MetodeGlobale;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
-import java.net.Socket;
 import java.util.HashMap;
 import java.util.Scanner;
 
@@ -38,6 +33,8 @@ public class Main {
         ThreadServer threadServer = new ThreadServer();
         threadServer.start();
 
+        // pornire thread heartbeat
+        // trimiterea unui heartbeat incepe doar dupa ce se afla cine e lider
         ThreadHeartbeat threadHeartbeat = new ThreadHeartbeat();
         threadHeartbeat.start();
 
@@ -67,30 +64,27 @@ public class Main {
             System.out.println("-----------------------------------------------");
         } else {
             try {
-                // deschide socket pentru comunicarea cu serverul
-                Socket socketClient = new Socket(VariabileGlobale.ipServerBootstrap, VariabileGlobale.portServerBootstrap);
-
-                // fluxuri pentru citire si scriere
-                BufferedReader in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
-                PrintWriter out = new PrintWriter(socketClient.getOutputStream(), true);
-
-                // trimitere mesaj Hello
-                //se primeste raspuns id server de legatura, dictionare cu ip si porturi ale celorlalti peers din retea
-                //si colectia de documente care trebuie stocata local pe peer nou
-                out.println("Hello " + VariabileGlobale.id + " " + VariabileGlobale.portServerLocal);
-
-                // primire raspunsuri
-                String raspunsIdServerBootstrap = in.readLine();
-                String raspunsJsonPerechiIdIp = in.readLine();
-                String raspunsJsonPerechiIdPort = in.readLine();
-                String raspunsJsonColectieDocumente = in.readLine();
-
-                System.out.println("Raspuns pentru mesajul Hello catre serverul de legatura:");
-                System.out.println(raspunsIdServerBootstrap);
-                System.out.println(raspunsJsonPerechiIdIp);
-                System.out.println(raspunsJsonPerechiIdPort);
-                System.out.println(raspunsJsonColectieDocumente);
-                System.out.println("-----------------------------------------------");
+                // trimitere mesaj GetPerechiIdIp
+                // primeste inapoi dictionarul cu id-ul si ip-ul fiecarui peer
+                String raspunsJsonPerechiIdIp = MetodeGlobale.trimiteMesaj(
+                        VariabileGlobale.ipServerBootstrap,
+                        VariabileGlobale.portServerBootstrap,
+                        "GetPerechiIdIp"
+                );
+                // trimitere mesaj GetPerechiIdPort
+                // primeste inapoi dictionarul cu id-ul si portul fiecarui peer
+                String raspunsJsonPerechiIdPort = MetodeGlobale.trimiteMesaj(
+                        VariabileGlobale.ipServerBootstrap,
+                        VariabileGlobale.portServerBootstrap,
+                        "GetPerechiIdPort"
+                );
+                // trimitere mesaj GetColectieDocumente
+                // primeste inapoi ca raspuns colectia de documente
+                String raspunsJsonColectieDocumente = MetodeGlobale.trimiteMesaj(
+                        VariabileGlobale.ipServerBootstrap,
+                        VariabileGlobale.portServerBootstrap,
+                        "GetColectieDocumente"
+                );
 
                 // convertire dictionare convertite in sir de caractere in dictionare
                 HashMap<Integer, String> raspunsPerechiIdIp =
@@ -105,9 +99,17 @@ public class Main {
                 VariabileGlobale.perechiIdPort.putAll(raspunsPerechiIdPort);
                 VariabileGlobale.colectieDocumente.putAll(raspunsColectieDocumente);
 
-                // trimite mesaj Hello catre ceilalti peers
+                // trimite mesaj Hello catre ceilalti peers (serverul de legatura nu se gaseste in dictionare)
                 // pentru ca peer nou sa fie inregistrat in dictionarele locale ale fiecaruia
                 MetodeGlobale.broadcast("Hello " + VariabileGlobale.id + " " + VariabileGlobale.portServerLocal);
+
+                // trimitere mesaj Hello catre serverul de legatura
+                //se primeste raspuns id server de legatura
+                String raspunsIdServerBootstrap = MetodeGlobale.trimiteMesaj(
+                        VariabileGlobale.ipServerBootstrap,
+                        VariabileGlobale.portServerBootstrap,
+                        "Hello " + VariabileGlobale.id + " " + VariabileGlobale.portServerLocal
+                );
 
                 // punem in dictionarele locale id-ul, ip-ul si portul serverlui de legatura
                 int idServerBootstrap = Integer.parseInt(raspunsIdServerBootstrap);
@@ -135,11 +137,7 @@ public class Main {
                 System.out.println("Se trimite Hearbeat catre lider in background");
                 System.out.println("-----------------------------------------------");
 
-                //eliberare resurse
-                in.close();
-                out.close();
-                socketClient.close();
-            } catch (IOException | InterruptedException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("eroare la intrare in retea");
                 System.out.println("***********************************************");

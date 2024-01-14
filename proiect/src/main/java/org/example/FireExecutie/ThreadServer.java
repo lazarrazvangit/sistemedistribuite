@@ -3,6 +3,7 @@ package org.example.FireExecutie;
 import com.google.gson.Gson;
 import org.example.Metode.MetodeDeserializare;
 import org.example.Metode.MetodeGlobale;
+import org.example.Metode.MetodeSerializare;
 import org.example.Tranzactie;
 import org.example.VariabileGlobale;
 
@@ -52,20 +53,28 @@ public class ThreadServer extends Thread {
                 String[] subsiruri = sirCaractere.split(" ", 3);
                 String mesaj = subsiruri[0];
 
-                if (mesaj.equals("Hello")) {
-                    // converteste obiect din program in sir de caractere
-                    // pentru a fi trimis prin retea
-                    Gson gson = new Gson();
-                    String dictionarIdIpConvertit = gson.toJson(VariabileGlobale.perechiIdIp);
-                    String dictionarIdPortConvertit = gson.toJson(VariabileGlobale.perechiIdPort);
-                    String colectieDocumenteConvertita = gson.toJson(VariabileGlobale.colectieDocumente);
+                if (mesaj.equals("GetPerechiIdIp")) {
+                    String dictionarIdIpConvertit = MetodeSerializare.serializeaza(VariabileGlobale.perechiIdIp);
+                    out.println(dictionarIdIpConvertit);
 
+                    System.out.println("Un peer a cerut dictionarul cu ip-uri");
+                    System.out.println("-----------------------------------------------");
+                } else if (mesaj.equals("GetPerechiIdPort")) {
+                    String dictionarIdPortConvertit = MetodeSerializare.serializeaza(VariabileGlobale.perechiIdPort);
+                    out.println(dictionarIdPortConvertit);
+
+                    System.out.println("Un peer a cerut dictionarul cu porturi");
+                    System.out.println("-----------------------------------------------");
+                } else if (mesaj.equals("GetColectieDocumente")) {
+                    String colectieDocumenteConvertita = MetodeSerializare.serializeaza(VariabileGlobale.colectieDocumente);
+                    out.println(colectieDocumenteConvertita);
+
+                    System.out.println("Un peer a cerut colectia de documente");
+                    System.out.println("-----------------------------------------------");
+                } else if (mesaj.equals("Hello")) {
                     // trimitem catre peer nou in retea id-urile, ip-urile si porturile altor peer pe care ii cunoaste
                     // acest peer si documentele stocate local
                     out.println(VariabileGlobale.id);
-                    out.println(dictionarIdIpConvertit);
-                    out.println(dictionarIdPortConvertit);
-                    out.println(colectieDocumenteConvertita);
 
                     // colectam datele despre clientul nou in retea
                     int idClient = Integer.parseInt(subsiruri[1]);
@@ -138,7 +147,7 @@ public class ThreadServer extends Thread {
 
                     System.out.println("Documentul nou a fost salvat");
                     System.out.println("-----------------------------------------------");
-                } else if (mesaj.equals("ROLLBACK")){
+                } else if (mesaj.equals("ROLLBACK")) {
                     Tranzactie.numeDocumentInTranzactie = null;
                     Tranzactie.continutDocumentInTranzactie = null;
 

@@ -84,13 +84,19 @@ public class MetodeGlobale {
         }
     }
 
+    /**
+     * Metoda pentru trimiterea unui mesaj catre un alt peer cand se cunoaste id-ul acestuia
+     * @param idDestinatar este id-ul acelui peer caruia i se trimite mesajul
+     * @param mesaj este continutul mesajului
+     * @return raspunsul primit in urma mesajului sau sir gol ("") in caz de eroare
+     */
     public static String trimiteMesaj(int idDestinatar, String mesaj) {
         //gasire ip si port destinatar in dictionare pe baza id-ului(cheii)
-        String ip = VariabileGlobale.perechiIdIp.get(idDestinatar);
-        int port = VariabileGlobale.perechiIdPort.get(idDestinatar);
+        String ipDestinatar = VariabileGlobale.perechiIdIp.get(idDestinatar);
+        int portDestinatar = VariabileGlobale.perechiIdPort.get(idDestinatar);
 
         try {
-            Socket socketClient = new Socket(ip, port);
+            Socket socketClient = new Socket(ipDestinatar, portDestinatar);
 
             BufferedReader in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
             PrintWriter out = new PrintWriter(socketClient.getOutputStream(), true);
@@ -110,6 +116,42 @@ public class MetodeGlobale {
         }
     }
 
+    /**
+     * Metoda pentru trimiterea unui mesaj catre un alt peer cand se cunoaste ip-ul si portul
+     * @param ipDestinatar este ip-ul acelui peer caruia i se trimite mesajul
+     * @param portDestinatar este portul pe care asculta destinatarul cererile de la alti peers
+     * @param mesaj este continutul mesajului
+     * @return raspunsul primit in urma mesajului sau sir gol ("") in caz de eroare
+     */
+    public static String trimiteMesaj(String ipDestinatar, int portDestinatar, String mesaj) {
+        try {
+            // deschide socket pentru comunicarea cu serverul
+            Socket socketClient = new Socket(ipDestinatar, portDestinatar);
+
+            // fluxuri pentru citire si scriere
+            BufferedReader in = new BufferedReader(new InputStreamReader(socketClient.getInputStream()));
+            PrintWriter out = new PrintWriter(socketClient.getOutputStream(), true);
+
+            out.println(mesaj);
+            String raspuns = in.readLine();
+
+            System.out.println("Raspuns pentru mesajul " + mesaj + " catre " + ipDestinatar + ":" + portDestinatar);
+            System.out.println(raspuns);
+            System.out.println("-----------------------------------------------");
+            return raspuns;
+        } catch (IOException e) {
+            //e.printStackTrace();
+            System.out.println("eroare trimitere mesaj " + mesaj + " catre " + ipDestinatar + ":" + portDestinatar);
+            System.out.println("************************************************");
+            return "";
+        }
+    }
+
+    /**
+     * Metoda apelata pentru inceperea unui commit in doua faze
+     * @param numeDocument numele documentului care se memoreaza (numele este cheia de cautare in dictionar a continutului)
+     * @param continutDocumentJson continutul documentului in format JSON (continutul este valoarea inregistrarii din dictionar)
+     */
     public static void twoPhaseCommit(String numeDocument, String continutDocumentJson) {
         // converteste din sir de caractere in dictionar
         HashMap<String, Object> continutDocument = MetodeDeserializare.deserializeazaDocument(continutDocumentJson);
