@@ -1,6 +1,5 @@
 package org.example.FireExecutie;
 
-import com.google.gson.Gson;
 import org.example.Metode.MetodeDeserializare;
 import org.example.Metode.MetodeGlobale;
 import org.example.Metode.MetodeSerializare;
@@ -54,26 +53,25 @@ public class ThreadServer extends Thread {
                 String mesaj = subsiruri[0];
 
                 if (mesaj.equals("GetPerechiIdIp")) {
-                    String dictionarIdIpConvertit = MetodeSerializare.serializeaza(VariabileGlobale.perechiIdIp);
-                    out.println(dictionarIdIpConvertit);
+                    String dictionarIdIpJson = MetodeSerializare.serializeaza(VariabileGlobale.perechiIdIp);
+                    out.println(dictionarIdIpJson);
 
                     System.out.println("Un peer a cerut dictionarul cu ip-uri");
                     System.out.println("-----------------------------------------------");
                 } else if (mesaj.equals("GetPerechiIdPort")) {
-                    String dictionarIdPortConvertit = MetodeSerializare.serializeaza(VariabileGlobale.perechiIdPort);
-                    out.println(dictionarIdPortConvertit);
+                    String dictionarIdPortJson = MetodeSerializare.serializeaza(VariabileGlobale.perechiIdPort);
+                    out.println(dictionarIdPortJson);
 
                     System.out.println("Un peer a cerut dictionarul cu porturi");
                     System.out.println("-----------------------------------------------");
                 } else if (mesaj.equals("GetColectieDocumente")) {
-                    String colectieDocumenteConvertita = MetodeSerializare.serializeaza(VariabileGlobale.colectieDocumente);
-                    out.println(colectieDocumenteConvertita);
+                    String colectieDocumenteJson = MetodeSerializare.serializeaza(VariabileGlobale.colectieDocumente);
+                    out.println(colectieDocumenteJson);
 
                     System.out.println("Un peer a cerut colectia de documente");
                     System.out.println("-----------------------------------------------");
                 } else if (mesaj.equals("Hello")) {
-                    // trimitem catre peer nou in retea id-urile, ip-urile si porturile altor peer pe care ii cunoaste
-                    // acest peer si documentele stocate local
+                    // trimitem catre peer nou in retea id-ul acestui peer
                     out.println(VariabileGlobale.id);
 
                     // colectam datele despre clientul nou in retea

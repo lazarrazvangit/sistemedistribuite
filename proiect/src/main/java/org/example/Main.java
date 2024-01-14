@@ -157,7 +157,7 @@ public class Main {
             String[] stringArray = line.split(" ", 3);
             //comanda este primul cuvant din linie
             String comanda = stringArray[0];
-
+            //TODO: daca se introduce o comanda gresit s-ar putea sa dea index out of bound exception
             switch (comanda) {
                 case "print":
                     String argument = stringArray[1];
@@ -199,13 +199,13 @@ public class Main {
                         if (VariabileGlobale.id == VariabileGlobale.idLider) {
                             MetodeGlobale.twoPhaseCommit(numeDocument, continutDocumentJson);
                         } else {
-                            //trimite tranzactia catre lider
-                            //format mesaj: "TRANZACTIE numeDocument continutDocumentJSON"
-                            String mesaj = "TRANZACTIE " + numeDocument + " " + continutDocumentJson;
-                            MetodeGlobale.trimiteMesaj(VariabileGlobale.idLider, mesaj);
-
                             System.out.println("Tranzactia a fost trimisa catre lider: " + VariabileGlobale.idLider);
                             System.out.println("-----------------------------------------------");
+
+                            //trimite tranzactia catre lider
+                            //format mesaj: "TRANZACTIE numeDocument continutDocumentJSON"
+                            MetodeGlobale.trimiteMesaj(VariabileGlobale.idLider,
+                                    "TRANZACTIE " + numeDocument + " " + continutDocumentJson);
                         }
                     } else {
                         System.out.println("formamtul JSON e incorect");
