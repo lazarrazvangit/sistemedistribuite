@@ -1,6 +1,10 @@
-package org.example;
+package org.example.FireExecutie;
 
 import com.google.gson.Gson;
+import org.example.Metode.MetodeDeserializare;
+import org.example.Metode.MetodeGlobale;
+import org.example.Tranzactie;
+import org.example.VariabileGlobale;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -120,7 +124,7 @@ public class ThreadServer extends Thread {
                     String continutDocumentJson = subsiruri[2];
                     //salveaza documentul in tranzactia locala
                     Tranzactie.numeDocumentInTranzactie = numeDocument;
-                    Tranzactie.continutDocumentInTranzactie = MetodeGlobale.deserializeazaDocument(continutDocumentJson);
+                    Tranzactie.continutDocumentInTranzactie = MetodeDeserializare.deserializeazaDocument(continutDocumentJson);
                     //raspunde la PREPARE CU READY
                     out.println("READY");
                 } else if (mesaj.equals("COMMIT")) {

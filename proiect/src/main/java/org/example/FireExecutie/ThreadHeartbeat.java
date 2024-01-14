@@ -1,4 +1,7 @@
-package org.example;
+package org.example.FireExecutie;
+
+import org.example.Metode.MetodeGlobale;
+import org.example.VariabileGlobale;
 
 import java.io.BufferedReader;
 import java.io.IOException;

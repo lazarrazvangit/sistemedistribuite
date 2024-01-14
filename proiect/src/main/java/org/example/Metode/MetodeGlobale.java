@@ -1,13 +1,12 @@
-package org.example;
+package org.example.Metode;
 
-import com.google.gson.Gson;
-import com.google.gson.reflect.TypeToken;
+import org.example.Tranzactie;
+import org.example.VariabileGlobale;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.lang.reflect.Type;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +14,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class MetodeGlobale {
-    static void broadcast(String mesaj) {
+    public static void broadcast(String mesaj) {
         System.out.println("Am trimis broadcast mesajul: " + mesaj);
         System.out.println("-----------------------------------------------");
 
@@ -47,7 +46,7 @@ public class MetodeGlobale {
         }
     }
 
-    static ArrayList<Integer> cautaPeersIdMaiMare() {
+    public static ArrayList<Integer> cautaPeersIdMaiMare() {
         ArrayList<Integer> colectiePeersIdMaiMare = new ArrayList<>();
         Set<Map.Entry<Integer, String>> entrySet = VariabileGlobale.perechiIdIp.entrySet();
         for (Map.Entry<Integer, String> entry : entrySet) {
@@ -59,7 +58,7 @@ public class MetodeGlobale {
         return colectiePeersIdMaiMare;
     }
 
-    static boolean sendElectionMessage(ArrayList<Integer> colectiePeersIdMaiMare) {
+    public static boolean sendElectionMessage(ArrayList<Integer> colectiePeersIdMaiMare) {
         boolean okFlag = false;
         for (int id : colectiePeersIdMaiMare) {
             // obtinem ip-ul si portul din dictionare
@@ -97,7 +96,7 @@ public class MetodeGlobale {
         return okFlag;
     }
 
-    static void ringElection() {
+    public static void ringElection() {
         // se cauta in colectie acei peers id mai mare decat peer curent
         ArrayList<Integer> colectiePeersIdMaiMare = cautaPeersIdMaiMare();
 
@@ -119,7 +118,7 @@ public class MetodeGlobale {
         }
     }
 
-    static String trimiteMesaj(int idDestinatar, String mesaj){
+    public static String trimiteMesaj(int idDestinatar, String mesaj){
         //gasire ip si port destinatar in dictionare
         String ip = VariabileGlobale.perechiIdIp.get(idDestinatar);
         int port =  VariabileGlobale.perechiIdPort.get(idDestinatar);
@@ -147,9 +146,9 @@ public class MetodeGlobale {
         }
     }
 
-    static void twoPhaseCommit(String numeDocument, String continutDocumentJson){
+    public static void twoPhaseCommit(String numeDocument, String continutDocumentJson){
         //salveaza documentul temporar in tranzactie
-        HashMap<String, Object> continutDocument = deserializeazaDocument(continutDocumentJson);
+        HashMap<String, Object> continutDocument = MetodeDeserializare.deserializeazaDocument(continutDocumentJson);
 
         Tranzactie.numeDocumentInTranzactie = numeDocument;
         Tranzactie.continutDocumentInTranzactie = continutDocument;
@@ -207,13 +206,5 @@ public class MetodeGlobale {
             System.out.println("Documentul nou a fost salvat");
             System.out.println("-----------------------------------------------");
         }
-    }
-
-    static HashMap<String, Object> deserializeazaDocument(String continutDocumentJson){
-        Gson gson = new Gson();
-        Type mapType = new TypeToken<HashMap<String, Object>>() {
-        }.getType(); //chat gpt
-        HashMap<String, Object> continutDocument = gson.fromJson(continutDocumentJson, mapType);
-        return continutDocument;
     }
 }

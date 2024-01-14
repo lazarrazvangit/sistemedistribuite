@@ -1,17 +1,21 @@
 package org.example;
 
-import com.google.gson.Gson;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
-import com.google.gson.reflect.TypeToken;
+import org.example.FireExecutie.ThreadHeartbeat;
+import org.example.FireExecutie.ThreadServer;
+import org.example.Metode.MetodeDeserializare;
+import org.example.Metode.MetodeGlobale;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
-import java.lang.reflect.Type;
 import java.net.Socket;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Scanner;
+import java.util.Set;
 
 public class Main {
     public static void main(String[] args) {
@@ -91,16 +95,12 @@ public class Main {
                 System.out.println("-----------------------------------------------");
 
                 // convertire dictionare convertite in sir de caractere in dictionare
-                Gson gson = new Gson();
-                Type typeOfIpMap = new TypeToken<HashMap<Integer, String>>() {
-                }.getType();
-                Type typeOfPortMap = new TypeToken<HashMap<Integer, Integer>>() {
-                }.getType();
-                Type mapType = new TypeToken<HashMap<String, HashMap<String, Object>>>() {
-                }.getType();
-                HashMap<Integer, String> raspunsPerechiIdIp = gson.fromJson(raspunsJsonPerechiIdIp, typeOfIpMap);
-                HashMap<Integer, Integer> raspunsPerechiIdPort = gson.fromJson(raspunsJsonPerechiIdPort, typeOfPortMap);
-                HashMap<String, HashMap<String, Object>> raspunsColectieDocumente = gson.fromJson(raspunsJsonColectieDocumente, mapType);
+                HashMap<Integer, String> raspunsPerechiIdIp =
+                        MetodeDeserializare.deserializeazaDictionarPerechiIdIp(raspunsJsonPerechiIdIp);
+                HashMap<Integer, Integer> raspunsPerechiIdPort =
+                        MetodeDeserializare.deserializeazaDictionarPerechiIdPort(raspunsJsonPerechiIdPort);
+                HashMap<String, HashMap<String, Object>> raspunsColectieDocumente =
+                        MetodeDeserializare.deserializeazaColectieDocumente(raspunsJsonColectieDocumente);
 
                 // actualizare dictionare locale
                 VariabileGlobale.perechiIdIp.putAll(raspunsPerechiIdIp);
@@ -224,7 +224,7 @@ public class Main {
                     break;
                 case "save":
                     String numeDocument = stringArray[1]; //cheie
-                    String continutDocumentJson = stringArray[2];
+                    String continutDocumentJson = stringArray[2]; //valoare
 
                     //verifica daca datele sunt in format JSON corect
                     boolean formatCorect = true;
